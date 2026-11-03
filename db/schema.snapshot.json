@@ -1132,7 +1132,8 @@
         "2228_other_item_kinds.sql",
         "2229_work_report_display_options.sql",
         "2230_journal_lines_cost_center_index.sql",
-        "2231_unit_prices_six_decimals.sql"
+        "2231_unit_prices_six_decimals.sql",
+        "2233_invoice_online_payments.sql"
     ],
     "tables": {
         "abra_flexi_connections": {
@@ -7162,6 +7163,38 @@
             "checks": {
                 "tracking_json": "`tracking_json` is null or json_valid(`tracking_json`)"
             }
+        },
+        "invoice_online_payments": {
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "collation": "utf8mb4_unicode_ci",
+            "columns": {
+                "amount": "decimal(12,2) NOT NULL",
+                "checkout_session_id": "varchar(255) NOT NULL",
+                "created_at": "timestamp NOT NULL DEFAULT current_timestamp()",
+                "currency": "char(3) NOT NULL",
+                "expires_at": "datetime NOT NULL",
+                "id": "bigint(20) unsigned NOT NULL AUTO_INCREMENT",
+                "invoice_id": "bigint(20) unsigned NOT NULL",
+                "invoice_payment_id": "bigint(20) unsigned NULL DEFAULT NULL",
+                "livemode": "tinyint(1) NOT NULL DEFAULT 0",
+                "paid_at": "datetime NULL DEFAULT NULL",
+                "payment_intent_id": "varchar(255) NULL DEFAULT NULL",
+                "provider": "varchar(20) NOT NULL DEFAULT 'stripe'",
+                "status": "enum('open','paid','expired') NOT NULL DEFAULT 'open'",
+                "supplier_id": "int(10) unsigned NOT NULL"
+            },
+            "indexes": {
+                "PRIMARY": "UNIQUE BTREE (id)",
+                "ix_iop_invoice": "BTREE (invoice_id, status)",
+                "ix_iop_supplier": "BTREE (supplier_id)",
+                "uq_iop_session": "UNIQUE BTREE (checkout_session_id)"
+            },
+            "foreign_keys": {
+                "fk_iop_invoice": "(invoice_id) -> invoices (id) ON UPDATE RESTRICT ON DELETE CASCADE",
+                "fk_iop_supplier": "(supplier_id) -> supplier (id) ON UPDATE RESTRICT ON DELETE CASCADE"
+            },
+            "checks": []
         },
         "invoice_payment_schedule": {
             "type": "BASE TABLE",

@@ -25,6 +25,10 @@ Splatnost:         {{ invoice.due_date|date('j.n.Y') }}
 {% elseif payment_method == 'cash' %}>>> Úhrada v hotovosti.
 
 {% endif %}Faktura v PDF je v příloze tohoto emailu.
+{% if online_payment_url is defined and online_payment_url %}
+Zaplatit online: {{ online_payment_url }}
+(Kartou, Apple Pay nebo Google Pay — zabezpečeně přes Stripe.)
+{% endif %}
 {% if public_url %}
 Fakturu si můžete kdykoli zobrazit online: {{ public_url }}
 {% endif %}

@@ -48,6 +48,7 @@ final class PublicInvoiceGetAction
         private readonly PublicTenantGuard $tenantGuard,
         private readonly InvoicePublicLinkFeature $feature,
         private readonly InvoiceIsdocDeliverySettings $isdocSettings,
+        private readonly \MyInvoice\Service\Invoice\InvoicePublicLinkService $publicLinks,
     ) {}
 
     public function __invoke(Request $request, Response $response, array $args): Response
@@ -91,7 +92,18 @@ final class PublicInvoiceGetAction
             $this->attachments->listForInvoice((int) $invoice['id']),
             $this->renderer->ossClause($invoice),
             $this->isdocSettings->publicEnabled($invoice),
+            $this->onlinePaymentUrl($invoice),
         ));
+    }
+
+    /** „Zaplatit online" (Stripe Checkout) — null, když je vypnuté nebo není co platit. */
+    private function onlinePaymentUrl(array $invoice): ?string
+    {
+        try {
+            return $this->publicLinks->ensurePayUrl($invoice);
+        } catch (\Throwable) {
+            return null; // web faktura se zobrazí i bez platebního tlačítka
+        }
     }
 
     /**
@@ -116,6 +128,7 @@ final class PublicInvoiceGetAction
         array $attachments = [],
         ?array $ossClause = null,
         bool $isdocAvailable = false,
+        ?string $onlinePaymentUrl = null,
     ): array {
         $pick = static fn (array $src, array $keys): array =>
             array_intersect_key($src, array_flip($keys));
@@ -162,6 +175,9 @@ final class PublicInvoiceGetAction
                 'account_number', 'bank_code', 'bank_name', 'iban', 'bic',
             ]),
             'qr_data_uri' => $qrDataUri,
+            // Trvalý odkaz /api/public/invoice/{token}/pay (Stripe Checkout); null =
+            // online platba vypnutá, faktura zaplacená nebo nepodporovaná měna.
+            'online_payment_url' => $onlinePaymentUrl,
             // OSS doložka — náhled musí říct totéž co PDF (InvoicePdfRenderer::ossClause).
             // Jen odvozená metadata (státy spotřeby, celý/smíšený doklad), žádné částky
             // ani per-řádkové OSS sloupce navíc.

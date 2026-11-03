@@ -58,4 +58,40 @@ final class InvoicePublicLinkService
         }
         return $this->url($token, (int) ($invoice['supplier_id'] ?? 0));
     }
+
+    /**
+     * Trvalý odkaz „Zaplatit online" (Stripe Checkout) pro PDF, e-mail a web
+     * fakturu, nebo null, když se online platba nemá nabízet
+     * ({@see \MyInvoice\Service\Payment\Stripe\OnlinePaymentPolicy}).
+     *
+     * Nevede přímo na Stripe — Checkout Session platí nejvýš 24 h. Endpoint
+     * `/api/public/invoice/{token}/pay` session založí až při kliknutí. Proto je
+     * podmínkou zapnutá web faktura (token) a absolutní app.url.
+     */
+    public function ensurePayUrl(array $invoice): ?string
+    {
+        $stripe = \MyInvoice\Service\Payment\Stripe\StripeConfig::fromConfig($this->config);
+        if (\MyInvoice\Service\Payment\Stripe\OnlinePaymentPolicy::payableAmount($invoice, $stripe) === null) {
+            return null;
+        }
+        $publicUrl = $this->ensureUrl($invoice);
+        if ($publicUrl === null) {
+            return null;
+        }
+        $token = (string) ($invoice['public_token'] ?? '');
+        if ($token === '') {
+            $token = $this->invoices->ensurePublicToken((int) $invoice['id']); // idempotentní
+        }
+        return $this->payUrl($token, (int) ($invoice['supplier_id'] ?? 0));
+    }
+
+    /** URL platebního endpointu pro token web faktury. */
+    public function payUrl(string $token, int $supplierId = 0): string
+    {
+        $path = '/api/public/invoice/' . $token . '/pay';
+        if ($this->tenantUrls !== null && $supplierId > 0) {
+            return $this->tenantUrls->forSupplier($supplierId, 'public_links', $path);
+        }
+        return rtrim((string) $this->config->get('app.url', ''), '/') . $path;
+    }
 }

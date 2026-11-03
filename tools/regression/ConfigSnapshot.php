@@ -16,6 +16,8 @@ final class ConfigSnapshot
     private const SOURCE_SIGNATURES = [
         'ba96ba9d57b895a5f31f66c83785248dc3a9cbff345f0edefaead0f472916105',
         '58f8c23bc5640b01812ebedd5793d5e66c56fe41bffd377b122c7fdd7e985bd5',
+        // + sekce stripe (výchozí vypnuto) a ENV STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET
+        'cfa65d317df0723c361bd8a14f51b55e7dbf783b28bdd34a2438532fb0d1c8df',
     ];
 
     private static ?Config $config = null;

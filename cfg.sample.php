@@ -456,6 +456,20 @@ return [
         // ENV varianta: MYINVOICE_INVOICE_PUBLIC_LINKS=0
         'public_links' => true,
     ],
+    'stripe' => [
+        // Volitelná online platba faktur „Zaplatit online" přes Stripe Checkout
+        // (karta, Apple Pay, Google Pay). Výchozí VYPNUTO. Zapne se jen se všemi
+        // třemi hodnotami; vyžaduje web fakturu (invoices.public_links) a app.url.
+        // Webhook ve Stripe: https://<app.url>/api/public/stripe/webhook
+        //   události checkout.session.completed, checkout.session.async_payment_succeeded,
+        //   checkout.session.expired
+        // ENV: MYINVOICE_STRIPE_ENABLED=1, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
+        //      MYINVOICE_STRIPE_CURRENCIES=CZK,EUR
+        'enabled'        => false,
+        'secret_key'     => '',          // sk_test_… pro test mode, sk_live_… ostrý
+        'webhook_secret' => '',          // whsec_… z nastavení webhooku
+        'currencies'     => ['CZK'],     // měny faktur, u kterých se online platba nabízí
+    ],
     'pagination' => [
         // Velikost stránky pro tlačítko "Další" v UI seznamech.
         // Min/max hranice (5 / 200) se enforcují v API; mimo rozsah API hodnotu clampuje.

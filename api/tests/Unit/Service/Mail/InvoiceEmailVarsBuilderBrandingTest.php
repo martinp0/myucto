@@ -41,7 +41,7 @@ final class InvoiceEmailVarsBuilderBrandingTest extends TestCase
         $builder = new InvoiceEmailVarsBuilder(
             $connection,
             (new \ReflectionClass(QrPaymentGenerator::class))->newInstanceWithoutConstructor(),
-            (new \ReflectionClass(InvoicePublicLinkService::class))->newInstanceWithoutConstructor(),
+            new InvoicePublicLinkService(new \MyInvoice\Infrastructure\Config\Config([]), (new \ReflectionClass(\MyInvoice\Repository\InvoiceRepository::class))->newInstanceWithoutConstructor()),
             (new \ReflectionClass(SupplierPaymentQrSettingsRepository::class))->newInstanceWithoutConstructor(),
         );
 
@@ -219,7 +219,7 @@ final class InvoiceEmailVarsBuilderBrandingTest extends TestCase
         return new InvoiceEmailVarsBuilder(
             $connection,
             (new \ReflectionClass(QrPaymentGenerator::class))->newInstanceWithoutConstructor(),
-            (new \ReflectionClass(InvoicePublicLinkService::class))->newInstanceWithoutConstructor(),
+            new InvoicePublicLinkService(new \MyInvoice\Infrastructure\Config\Config([]), (new \ReflectionClass(\MyInvoice\Repository\InvoiceRepository::class))->newInstanceWithoutConstructor()),
             (new \ReflectionClass(SupplierPaymentQrSettingsRepository::class))->newInstanceWithoutConstructor(),
         );
     }

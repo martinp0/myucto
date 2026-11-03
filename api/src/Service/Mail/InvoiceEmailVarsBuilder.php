@@ -66,6 +66,9 @@ final class InvoiceEmailVarsBuilder
             'is_test'        => false,
             'is_paid'        => $isPaid,
             'payment_method' => (string) ($invoice['payment_method'] ?? 'bank_transfer'),
+            // „Zaplatit online" (Stripe Checkout) — null, když je funkce vypnutá
+            // nebo už není co platit (OnlinePaymentPolicy).
+            'online_payment_url' => $this->publicLinks->ensurePayUrl($invoice),
         ];
     }
 
@@ -145,6 +148,8 @@ final class InvoiceEmailVarsBuilder
             // prvním odeslání. Null pro draft (test e-mail), bez app.url a při
             // vypnuté web faktuře (InvoicePublicLinkFeature).
             'public_url'     => $this->publicLinks->ensureUrl($invoice),
+            // „Zaplatit online" (Stripe Checkout), výchozí vypnuté — viz StripeConfig.
+            'online_payment_url' => $isTest ? null : $this->publicLinks->ensurePayUrl($invoice),
         ];
     }
 

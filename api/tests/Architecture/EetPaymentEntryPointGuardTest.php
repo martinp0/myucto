@@ -71,6 +71,9 @@ final class EetPaymentEntryPointGuardTest extends TestCase
             'Vypořádání proti účtu (zápočet na 311): bez nové platby.'],
         'MyInvoice\Service\Accounting\InvoiceSettlementService::settleVoucherRedemption' => [self::NOT_SUBJECT,
             'Uplatnění poukazu v daňové evidenci: vyrovnání faktury bez nové platby, tržbu (čerpání kreditu) eviduje volající EetPaymentCommand.'],
+        'MyInvoice\Service\Payment\Stripe\StripeOnlinePaymentService::handleEvent' => [self::NOT_SUBJECT,
+            'Platební brána: online platba kartou / Apple Pay / Google Pay přes Stripe Checkout je bezkontaktní '
+                . 'platba na dálku, potvrzená ověřeným webhookem; evidenci tržeb nepodléhá.'],
         'MyInvoice\Service\Sample\SampleDataGenerator::seedBankStatements' => [self::NOT_SUBJECT,
             'Vzorová data demo firmy, ne skutečná platba.'],
         'MyInvoice\Service\Sample\SampleWorkflowGenerator::generate' => [self::NOT_SUBJECT,

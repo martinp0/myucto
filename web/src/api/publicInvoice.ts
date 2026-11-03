@@ -131,6 +131,8 @@ export interface PublicInvoiceData {
   client: PublicInvoiceParty | null
   bank: PublicInvoiceBank | null
   qr_data_uri: string | null
+  /** Odkaz „Zaplatit online“ (Stripe Checkout); null = vypnuto / není co platit. */
+  online_payment_url?: string | null
   attachments: PublicInvoiceAttachment[]
   oss_clause: PublicInvoiceOssClause | null
 }

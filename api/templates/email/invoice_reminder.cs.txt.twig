@@ -16,6 +16,10 @@ Po splatnosti:     {{ days_overdue }} {% if days_overdue == 1 %}den{% elseif day
 K úhradě:          {{ amount_to_pay|number_format(2, ',', ' ') }} {{ invoice.currency }}
 
 Faktura v PDF je v příloze tohoto emailu.
+{% if online_payment_url is defined and online_payment_url %}
+Zaplatit online: {{ online_payment_url }}
+(Kartou, Apple Pay nebo Google Pay — zabezpečeně přes Stripe.)
+{% endif %}
 Pokud byla platba odeslána v posledních dnech, považujte prosím tuto upomínku za bezpředmětnou.
 
 Děkujeme za vyřízení.

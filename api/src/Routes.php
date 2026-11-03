@@ -915,6 +915,9 @@ final class Routes
         $app->get    ('/api/public/invoice/{token:[a-f0-9]{32,128}}/pdf', PublicInvoicePdfAction::class);
         $app->get    ('/api/public/invoice/{token:[a-f0-9]{32,128}}/isdoc', PublicInvoiceIsdocAction::class);
         $app->get    ('/api/public/invoice/{token:[a-f0-9]{32,128}}/attachment/{attId:[0-9]+}', PublicInvoiceAttachmentAction::class);
+        // Volitelná online platba (Stripe Checkout) — výchozí vypnutá, viz StripeConfig.
+        $app->get    ('/api/public/invoice/{token:[a-f0-9]{32,128}}/pay', \MyInvoice\Action\Invoice\PublicInvoicePayAction::class);
+        $app->post   ('/api/public/stripe/webhook', \MyInvoice\Action\Payment\StripeWebhookAction::class);
 
         // Veřejná účtenka zákazníka (bez auth, jen token s omezenou platností)
         $app->get    ('/api/public/receipt/{token:[a-f0-9]{64}}',     [\MyInvoice\Action\Invoice\PublicReceiptAction::class, 'show']);

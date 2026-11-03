@@ -61,6 +61,18 @@
 </table>
 {% endif %}
 
+{% if online_payment_url is defined and online_payment_url %}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto 4px;">
+  <tr>
+    <td align="center" bgcolor="#16794A" style="background:#16794A;border-radius:8px;mso-padding-alt:12px 28px;">
+      <a href="{{ online_payment_url }}" data-online-payment
+         style="display:inline-block;padding:12px 28px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:600;line-height:1;color:#ffffff;text-decoration:none;border-radius:8px;">Pay online</a>
+    </td>
+  </tr>
+</table>
+<p style="margin:4px 0 8px;font-size:12px;color:#7A748C;text-align:center;">By card, Apple Pay or Google Pay — securely via Stripe.</p>
+{% endif %}
+
 <p style="margin:16px 0 8px;font-size:14px;color:#5A5470;">
   The proforma invoice PDF is attached{% if qr_data_uri %}; you can pay by scanning the QR code above{% endif %}.
   Once the payment is received, we will send the final tax invoice promptly.

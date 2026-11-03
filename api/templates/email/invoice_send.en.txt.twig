@@ -25,6 +25,10 @@ Due date:        {{ invoice.due_date|date('M j, Y') }}
 {% elseif payment_method == 'cash' %}>>> Cash payment.
 
 {% endif %}The invoice PDF is attached.
+{% if online_payment_url is defined and online_payment_url %}
+Pay online: {{ online_payment_url }}
+(By card, Apple Pay or Google Pay — securely via Stripe.)
+{% endif %}
 {% if public_url %}
 You can view the invoice online anytime: {{ public_url }}
 {% endif %}

@@ -59,6 +59,8 @@ final class InvoicePdfRenderer
         private readonly \MyInvoice\Repository\PaymentScheduleRepository $paymentSchedule,
         private readonly VatStatusService $vatStatus,
         private readonly SupplierPaymentQrSettingsRepository $paymentQrSettings,
+        // „Zaplatit online" (Stripe Checkout) — odkaz + QR v PDF, výchozí vypnuté.
+        private readonly \MyInvoice\Service\Invoice\InvoicePublicLinkService $publicLinks,
     ) {}
 
     /**
@@ -401,6 +403,15 @@ final class InvoicePdfRenderer
             $workReport = TimeBillingPdfPresenter::workReport($workReport);
         }
 
+        // Draft ani interní náhled odkaz nemá (OnlinePaymentPolicy); chyba sestavení
+        // odkazu nesmí shodit render dokladu.
+        try {
+            $onlinePaymentUrl = $this->publicLinks->ensurePayUrl($invoice);
+        } catch (\Throwable $e) {
+            error_log('Odkaz Zaplatit online pro fakturu #' . (int) ($invoice['id'] ?? 0) . ' nevznikl: ' . $e->getMessage());
+            $onlinePaymentUrl = null;
+        }
+
         $vars = [
             'invoice'           => $invoice,
             'supplier'          => $supplierData,
@@ -409,6 +420,9 @@ final class InvoicePdfRenderer
             'hide_customer'     => SimplifiedDocumentPolicy::hidesCustomer($invoice, $supplierData),
             'bank'              => $bankData,
             'qr_data_uri'       => $qrUri,
+            'online_payment_url' => $onlinePaymentUrl,
+            'online_payment_qr'  => $onlinePaymentUrl !== null
+                ? \MyInvoice\Service\Qr\UrlQrCode::pngDataUri($onlinePaymentUrl) : null,
             // Platební VS = samostatný payment_variable_symbol, jinak číslice z čísla
             // dokladu (max 10). Velký titulek dokladu zůstává s pomlčkou, do platebního
             // řádku tiskneme validní VS (shodné s QR a párováním).

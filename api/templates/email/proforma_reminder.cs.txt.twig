@@ -17,6 +17,10 @@ Po splatnosti:     {{ days_overdue }} {% if days_overdue == 1 %}den{% elseif day
 K úhradě zálohy:   {{ amount_to_pay|number_format(2, ',', ' ') }} {{ invoice.currency }}
 
 Zálohová faktura v PDF je v příloze tohoto emailu.
+{% if online_payment_url is defined and online_payment_url %}
+Zaplatit online: {{ online_payment_url }}
+(Kartou, Apple Pay nebo Google Pay — zabezpečeně přes Stripe.)
+{% endif %}
 Po přijetí platby Vám obratem zašleme finální daňový doklad.
 Pokud byla platba odeslána v posledních dnech, považujte prosím tuto připomínku za bezpředmětnou.
 

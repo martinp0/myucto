@@ -79,6 +79,7 @@ final class PaymentQrProductionWiringTest extends TestCase
             $this->withoutConstructor(PaymentScheduleRepository::class),
             $this->withoutConstructor(VatStatusService::class),
             $this->settings($stored),
+            new InvoicePublicLinkService(new Config([]), $this->withoutConstructor(InvoiceRepository::class)),
         );
 
         $html = $renderer->renderHtml($this->issuedInvoice(), includeCss: false, includeWorkReport: false);

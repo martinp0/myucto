@@ -137,7 +137,8 @@ final class PublicLinkFeatureDisabledTest extends TestCase
         $args = ['token' => self::TOKEN, 'attId' => 3];
 
         return match ($endpoint) {
-            'get' => (new PublicInvoiceGetAction($repo, $attachments, $renderer, $emailVars, $logger, $ip, $guard, $feature, $isdocSettings))
+            'get' => (new PublicInvoiceGetAction($repo, $attachments, $renderer, $emailVars, $logger, $ip, $guard, $feature, $isdocSettings,
+                new \MyInvoice\Service\Invoice\InvoicePublicLinkService(new \MyInvoice\Infrastructure\Config\Config([]), $repo)))
                 ($request, $response, $args),
             'pdf' => (new PublicInvoicePdfAction($renderer, $repo, $logger, $ip, $guard, $feature))
                 ($request, $response, $args),

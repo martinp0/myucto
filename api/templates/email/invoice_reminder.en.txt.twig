@@ -16,6 +16,10 @@ Days overdue:    {{ days_overdue }}
 Amount due:      {{ amount_to_pay|number_format(2, '.', ',') }} {{ invoice.currency }}
 
 The invoice PDF is attached.
+{% if online_payment_url is defined and online_payment_url %}
+Pay online: {{ online_payment_url }}
+(By card, Apple Pay or Google Pay — securely via Stripe.)
+{% endif %}
 If payment was sent in the past few days, please disregard this reminder.
 
 Thank you.

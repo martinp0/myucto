@@ -17,6 +17,10 @@ Days overdue:       {{ days_overdue }}
 Advance amount due: {{ amount_to_pay|number_format(2, '.', ',') }} {{ invoice.currency }}
 
 The proforma invoice PDF is attached.
+{% if online_payment_url is defined and online_payment_url %}
+Pay online: {{ online_payment_url }}
+(By card, Apple Pay or Google Pay — securely via Stripe.)
+{% endif %}
 Once the payment is received, we will send the final tax invoice promptly.
 If payment was sent in the past few days, please disregard this reminder.
 

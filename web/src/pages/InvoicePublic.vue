@@ -142,6 +142,23 @@ const showPayPanel = computed(() =>
   !!inv.value && !isCancelled.value
   && (isPaid.value || inv.value.payment_method !== 'bank_transfer' || !!data.value?.bank))
 
+// Výsledek návratu ze Stripe Checkout. „success" jen potvrzuje odeslání platby —
+// fakturu označí za uhrazenou až ověřený webhook, proto text „zpracováváme".
+const paymentNotice = computed(() => {
+  switch (String(route.query.payment || '')) {
+    case 'success':
+      return isPaid.value
+        ? { text: tt('Děkujeme, platba byla přijata.', 'Thank you, the payment has been received.'), cls: 'border-success-500/40 bg-success-50 text-success-600' }
+        : { text: tt('Děkujeme, platbu zpracováváme. Stav faktury se aktualizuje během chvíle.', 'Thank you, your payment is being processed. The invoice status will update shortly.'), cls: 'border-success-500/40 bg-success-50 text-success-600' }
+    case 'cancel':
+      return { text: tt('Platba byla zrušena, nic nebylo strženo.', 'The payment was cancelled, nothing was charged.'), cls: 'border-neutral-200 bg-neutral-50 text-neutral-700' }
+    case 'unavailable':
+      return { text: tt('Online platba teď není dostupná. Zkuste to prosím později nebo zaplaťte převodem.', 'Online payment is not available right now. Please try again later or pay by bank transfer.'), cls: 'border-warning-500/40 bg-warning-50 text-warning-600' }
+    default:
+      return null
+  }
+})
+
 const pdfUrl = computed(() => publicInvoiceApi.pdfUrl(token.value, true))
 const isdocUrl = computed(() => publicInvoiceApi.isdocUrl(token.value))
 
@@ -273,6 +290,12 @@ onMounted(async () => {
             </div>
           </div>
 
+          <!-- Návrat ze Stripe Checkout (?payment=success|cancel|unavailable) -->
+          <div v-if="paymentNotice" data-payment-notice
+            class="border rounded-xl px-4 py-3 text-sm" :class="paymentNotice.cls">
+            {{ paymentNotice.text }}
+          </div>
+
           <!-- Platební panel -->
           <div v-if="showPayPanel" class="bg-surface border rounded-xl p-6 shadow-sm"
             :class="isPaid ? 'border-success-500/40' : 'border-neutral-200'">
@@ -330,6 +353,15 @@ onMounted(async () => {
                   <div v-if="inv.paid_total > 0" class="mt-2 text-xs text-warning-600">
                     {{ tt('Částečně uhrazeno', 'Partially paid') }}: {{ fmtMoney(inv.paid_total) }} —
                     {{ tt('zbývá uhradit', 'remaining') }} {{ fmtMoney(remaining) }}
+                  </div>
+                  <!-- Zaplatit online (Stripe Checkout) — jen když ho server nabídne. -->
+                  <div v-if="data.online_payment_url" class="mt-4 flex flex-wrap items-center gap-3">
+                    <a :href="data.online_payment_url" :class="btnFilled('primary')" data-online-payment rel="nofollow">
+                      {{ tt('Zaplatit online', 'Pay online') }}
+                    </a>
+                    <span class="text-xs text-neutral-500">
+                      {{ tt('Kartou, Apple Pay nebo Google Pay — zabezpečeně přes Stripe.', 'By card, Apple Pay or Google Pay — securely via Stripe.') }}
+                    </span>
                   </div>
                 </template>
               </div>

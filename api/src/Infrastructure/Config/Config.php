@@ -306,6 +306,8 @@ final class Config
     {
         return [
             'invoices' => ['overdue_includes_today' => false, 'public_links' => true],
+            // Online platba faktur (Stripe Checkout) je opt-in; klíče jen z cfg.php / ENV.
+            'stripe' => ['enabled' => false, 'currencies' => ['CZK']],
             'epo_test' => false,
             'epo' => [
                 // Bundle se nasazuje spolu s aplikací, takže výchozí instalace ověří pečeť
@@ -423,6 +425,12 @@ final class Config
             'MYINVOICE_APP_DEBUG'   => ['app.debug', 'bool'],
             'MYINVOICE_OVERDUE_INCLUDES_TODAY' => ['invoices.overdue_includes_today', 'bool'],
             'MYINVOICE_INVOICE_PUBLIC_LINKS' => ['invoices.public_links', 'bool'],
+            // Volitelná online platba faktur přes Stripe Checkout (výchozí vypnutá).
+            // Klíče mají běžné názvy Stripe, aby šly převzít z PaaS integrací.
+            'MYINVOICE_STRIPE_ENABLED'    => ['stripe.enabled', 'bool'],
+            'MYINVOICE_STRIPE_CURRENCIES' => ['stripe.currencies', 'csv'],
+            'STRIPE_SECRET_KEY'           => ['stripe.secret_key', 'string'],
+            'STRIPE_WEBHOOK_SECRET'       => ['stripe.webhook_secret', 'string'],
             'MYINVOICE_APP_URL'     => ['app.url', 'string'],
             'MYINVOICE_DOMAINS_ENABLED' => ['domains.enabled', 'bool'],
             'MYINVOICE_APP_MANAGED'  => ['app.managed', 'bool'],

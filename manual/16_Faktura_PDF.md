@@ -766,6 +766,33 @@ uvidíte záznam o změně měny s počtem zneplatněných PDF.
 - Jeden e-mail s víc fakturami nelze poslat, každá faktura jde v samostatném e-mailu.
 - Po odeslání e-mailu nejde PDF stáhnout zpět. Pokud se klient zeptá, je v jeho schránce.
 
+### 16.10.17 Zaplatit online (Stripe)
+
+Volitelně může faktura nabídnout tlačítko **Zaplatit online**: klient zaplatí
+kartou, Apple Pay nebo Google Pay přes Stripe Checkout a faktura se po
+potvrzení od Stripe sama označí jako zaplacená.
+
+- **Výchozí stav** - vypnuto. Zapne ho správce instalace v `cfg.php`
+  (sekce `stripe`) nebo proměnnými prostředí `MYINVOICE_STRIPE_ENABLED=1`,
+  `STRIPE_SECRET_KEY` a `STRIPE_WEBHOOK_SECRET`. Volitelně
+  `MYINVOICE_STRIPE_CURRENCIES` (výchozí `CZK`).
+- **Předpoklady** - zapnutá web faktura ([§ 16.10.11](#161011-web-faktura-trvaly-verejny-odkaz))
+  a nastavené `app.url`. Ve Stripe je potřeba webhook na
+  `https://<app.url>/api/public/stripe/webhook` s událostmi
+  `checkout.session.completed`, `checkout.session.async_payment_succeeded`
+  a `checkout.session.expired`.
+- **Kde se odkaz objeví** - v PDF (odkaz a QR kód pod součty), v e-mailu
+  s fakturou i v upomínce a na web faktuře. Odkaz je trvalý
+  (`/api/public/invoice/<token>/pay`); platební stránka Stripe vzniká až po
+  kliknutí a vždy na aktuální zbývající částku.
+- **Kdy se nenabízí** - koncept, storno, zaplacená faktura, dobropis, platba
+  v hotovosti, platební kalendář, nepodporovaná měna nebo částka pod minimem
+  Stripe (15 Kč / 0,50 EUR).
+- **Zápis úhrady** - až po ověřeném webhooku (podpis `Stripe-Signature`).
+  Úhrada se zapíše jednou i při opakovaném doručení, s referencí
+  `stripe:<id session>`. Poplatky Stripe a výplaty na účet se párují zvlášť
+  (výpis z banky).
+
 ## 16.11 Související kapitoly
 
 - [14. Faktury](14_Faktury.md) - seznam, filtry a hromadné akce

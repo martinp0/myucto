@@ -587,6 +587,26 @@
   </tr>
 </table>
 
+{# ─── ZAPLATIT ONLINE (Stripe Checkout, volitelné, výchozí vypnuté) ───
+   Odkaz vede na trvalé /api/public/invoice/{token}/pay, ne přímo na Stripe —
+   Checkout Session vzniká až při kliknutí. Zaplacená faktura blok nemá. #}
+{% if online_payment_url is defined and online_payment_url and not is_paid and refund_amount is null %}
+<table class="online-pay" style="width:100%;margin-top:3mm;border:0.3mm solid #CFE8DA;background:#F1FAF5;border-radius:2mm;">
+  <tr>
+    {% if online_payment_qr %}
+    <td style="width:24mm;padding:2mm;vertical-align:middle;">
+      <img src="{{ online_payment_qr }}" alt="QR" width="70" height="70">
+    </td>
+    {% endif %}
+    <td style="padding:2mm 3mm;vertical-align:middle;">
+      <div class="bank-label" style="color:#16794A;">{{ t('Zaplatit online', 'Pay online') }}</div>
+      <div class="bank-meta-line">{{ t('Kartou, Apple Pay nebo Google Pay — naskenujte QR kód nebo otevřete odkaz:', 'By card, Apple Pay or Google Pay — scan the QR code or open the link:') }}</div>
+      <div class="bank-meta-line"><a href="{{ online_payment_url }}" style="color:#16794A;">{{ online_payment_url }}</a></div>
+    </td>
+  </tr>
+</table>
+{% endif %}
+
 {% if invoice.czk_recap and not hide_pdf_czk_recap %}
 <table class="czk-recap">
   <tr>
