@@ -43,6 +43,19 @@ final class MfaStepUpService
      */
     public const OPERATION_OIDC_LINK = 'oidc.link';
 
+    /**
+     * Schválení nebo zamítnutí jednoho návrhu bankovního spojení. Id v účelu
+     * brání použít proof od jiného návrhu. Záložní kód sem nepatří.
+     */
+    public static function bankAccountProposalOperation(string $decision, int $proposalId): string
+    {
+        if (!in_array($decision, ['approve', 'reject'], true) || $proposalId < 1) {
+            throw new \InvalidArgumentException('Neplatné vyřízení návrhu bankovního spojení.');
+        }
+
+        return 'bank_account_proposal.' . $decision . ':' . $proposalId;
+    }
+
     public static function domainActivationOperation(int $domainId): string
     {
         if ($domainId < 1) throw new \InvalidArgumentException('Neplatné ID domény.');
@@ -95,6 +108,7 @@ final class MfaStepUpService
         }
         $isPasskeyRevoke = preg_match('/^passkey\.revoke:([1-9][0-9]*)$/D', $operation, $passkeyMatches) === 1;
         $isDomainActivation = preg_match('/^domain\.activate:([1-9][0-9]*)$/D', $operation) === 1;
+        $isBankProposal = preg_match('/^bank_account_proposal\.(approve|reject):([1-9][0-9]*)$/D', $operation) === 1;
         if ($operation !== self::OPERATION_API_TOKEN_CREATE
             && $operation !== self::OPERATION_PASSKEY_REGISTER
             && $operation !== self::OPERATION_TOTP_ENABLE
@@ -104,6 +118,7 @@ final class MfaStepUpService
             && $operation !== self::OPERATION_OIDC_LINK
             && !$isPasskeyRevoke
             && !$isDomainActivation
+            && !$isBankProposal
         ) {
             throw new StepUpOperationException('Nepovolený účel step-up ověření.');
         }

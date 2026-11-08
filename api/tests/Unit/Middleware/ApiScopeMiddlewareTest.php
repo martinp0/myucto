@@ -656,6 +656,22 @@ final class ApiScopeMiddlewareTest extends TestCase
             self::assertSame(403, $r->getStatusCode(), "bearer $method $path");
             self::assertSame('token_write_forbidden', $this->errorCode($r));
         }
+        foreach ([
+            ['POST', '/api/settings/currencies/5/bank-change-proposals/9/approve'],
+            ['POST', '/api/settings/currencies/bank-change-proposals/9/reject'],
+        ] as [$method, $path]) {
+            $r = $this->middleware()->process($this->bearer($method, $path, 'read_write'), $this->okHandler());
+            self::assertSame(403, $r->getStatusCode(), "bearer $method $path");
+            self::assertSame('token_write_forbidden', $this->errorCode($r));
+        }
+        self::assertSame(204, $this->middleware()->process(
+            $this->bearer('POST', '/api/settings/currencies/5/bank-change-proposals', 'read_write'),
+            $this->okHandler(),
+        )->getStatusCode());
+        self::assertSame(403, $this->middleware()->process(
+            $this->bearer('POST', '/api/settings/currencies/5/bank-change-proposals', 'read'),
+            $this->okHandler(),
+        )->getStatusCode());
         self::assertSame(204, $this->middleware()->process(
             $this->bearer('GET', '/api/settings/currencies', 'read_write'),
             $this->okHandler(),

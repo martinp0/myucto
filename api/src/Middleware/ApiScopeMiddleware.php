@@ -289,6 +289,11 @@ final class ApiScopeMiddleware implements MiddlewareInterface
         ['POST', '#^/api/accounting/accounts$#'],
         ['PATCH', '#^/api/accounting/accounts/[0-9]+$#'],
         ['PUT', '#^/api/accounting/dimensions/documents/other-items/[0-9]+$#'],
+        // Návrh změny bankovního spojení. Výjimka otevírá jen podání a stažení
+        // návrhu. PUT/POST/DELETE na samotné měně zůstávají zavřené a schválení
+        // ani zamítnutí v tomhle seznamu nejsou — token účet nezapíše.
+        ['POST', '#^/api/settings/currencies/[0-9]+/bank-change-proposals$#'],
+        ['POST', '#^/api/settings/currencies/bank-change-proposals/[0-9]+/withdraw$#'],
     ];
 
     public function __construct(

@@ -62,6 +62,8 @@ final class ApiMeAction
                 // data, ne jako zavřený kanál.
                 'allow_payroll_submission_docs' =>
                     RequestAuthorization::tokenAllowsPayrollSubmissionDocs($request),
+                'allow_bank_account_propose' =>
+                    RequestAuthorization::tokenAllowsBankAccountProposal($request),
                 'expires_at' => $tok['expires_at'] ?? null,
             ];
         }

@@ -7751,9 +7751,154 @@ paths:
       description: |
         Per-supplier override hlavního codebooku — obsahuje i bank-accounts
         per currency. Mutace (POST/PUT/DELETE) jsou jen přes UI, ne přes API.
+        Token s příznakem `allow_bank_account_propose` smí jen podat návrh
+        (`POST /api/v1/settings/currencies/{id}/bank-change-proposals`).
+        Účet na fakturách a v QR se tím nemění.
       responses:
         '200':
           description: OK
+
+  /api/v1/settings/currencies/{id}/bank-change-proposals:
+    parameters:
+      - $ref: '#/components/parameters/SupplierIdHeader'
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    post:
+      tags: [Settings]
+      summary: Podá návrh změny bankovního spojení měnového účtu
+      description: |
+        Jen bearer token se scope `read_write` a příznakem
+        `allow_bank_account_propose`. Nezapisuje `currencies` a nemění
+        faktury, platební instrukce ani QR. Schválení dělá správce firmy
+        ve webovém rozhraní se step-up.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                account_number: { type: string, nullable: true }
+                bank_code: { type: string, nullable: true }
+                bank_name: { type: string, nullable: true }
+                iban: { type: string, nullable: true }
+                bic: { type: string, nullable: true }
+      responses:
+        '201': { description: Návrh uložen }
+        '200': { description: Stejný čekající návrh už existuje }
+        '403': { description: proposal_not_allowed nebo token bez příznaku }
+        '409': { description: account_claimed nebo account_has_foreign_statements }
+        '422': { description: validation_failed }
+        '429': { description: rate_limited }
+
+  /api/v1/settings/currencies/bank-change-proposals:
+    parameters:
+      - $ref: '#/components/parameters/SupplierIdHeader'
+    get:
+      tags: [Settings]
+      summary: Seznam návrhů změny bankovního spojení
+      description: |
+        Správce firmy ve session vidí návrhy firmy. Token s příznakem vidí
+        jen návrhy, které podal sám.
+      responses:
+        '200': { description: OK }
+        '403': { description: proposal_not_allowed nebo chybí role správce }
+
+  /api/v1/settings/currencies/bank-change-proposals/{id}:
+    parameters:
+      - $ref: '#/components/parameters/SupplierIdHeader'
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [Settings]
+      summary: Detail návrhu změny bankovního spojení
+      responses:
+        '200': { description: OK }
+        '403': { description: proposal_not_allowed }
+        '404': { description: not_found }
+
+  /api/v1/settings/currencies/bank-change-proposals/{id}/approve:
+    parameters:
+      - $ref: '#/components/parameters/SupplierIdHeader'
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    post:
+      tags: [Settings]
+      summary: Schválí návrh a teprve potom zapíše bankovní spojení
+      description: |
+        Jen přihlášený správce firmy. Vyžaduje čerstvý step-up proof vázaný
+        na tento návrh. Bearer token dostane 403 token_write_forbidden.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                step_up_token: { type: string }
+      responses:
+        '200': { description: Schváleno, účet je zapsaný }
+        '401': { description: step_up_required }
+        '403':
+          description: |
+            token_write_forbidden pro bearer token, step_up_proof_invalid
+            nebo forbidden pro uživatele, který není správce firmy.
+        '409': { description: already_decided, expired, stale nebo account_claimed }
+
+  /api/v1/settings/currencies/bank-change-proposals/{id}/reject:
+    parameters:
+      - $ref: '#/components/parameters/SupplierIdHeader'
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    post:
+      tags: [Settings]
+      summary: Zamítne návrh a bankovní spojení nechá beze změny
+      description: |
+        Jen přihlášený správce firmy se step-up proofem vázaným na zamítnutí
+        tohoto návrhu. Bearer token dostane 403 token_write_forbidden.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                step_up_token: { type: string }
+                reason: { type: string, maxLength: 200 }
+      responses:
+        '200': { description: Zamítnuto, účet beze změny }
+        '401': { description: step_up_required }
+        '403': { description: token_write_forbidden, step_up_proof_invalid nebo forbidden }
+        '409': { description: already_decided nebo expired }
+        '422': { description: validation_failed }
+
+  /api/v1/settings/currencies/bank-change-proposals/{id}/withdraw:
+    parameters:
+      - $ref: '#/components/parameters/SupplierIdHeader'
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    post:
+      tags: [Settings]
+      summary: Stáhne vlastní čekající návrh
+      description: |
+        Jen bearer token, který návrh podal. Účet se nemění. Správci firmy
+        dostanou jedno vyrozumění.
+      responses:
+        '200': { description: Staženo }
+        '403': { description: proposal_not_allowed }
+        '404': { description: not_found }
+        '409': { description: already_decided nebo expired }
 
   /api/v1/settings/vat-rates:
     parameters:
@@ -47071,6 +47216,12 @@ components:
                     pojišťoven). `false` = takové dokumenty výpis přeskočí
                     a detail vrátí 404 — zavřený kanál, ne prázdná data.
                     Nastavuje se jen při vytváření tokenu.
+                allow_bank_account_propose:
+                  type: boolean
+                  description: |
+                    Smí token jen navrhnout změnu bankovního spojení firmy.
+                    Schválení, zamítnutí ani přímý zápis účtu tenhle příznak
+                    neumožňuje. Výchozí hodnota je false.
                 expires_at: { type: [string, "null"], format: date-time }
             - { type: "null" }
 

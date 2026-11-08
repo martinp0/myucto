@@ -51,6 +51,7 @@ final class ApiTokenService
         string $scope,
         ?\DateTimeImmutable $expiresAt = null,
         bool $allowPayrollSubmissionDocs = false,
+        bool $allowBankAccountPropose = false,
     ): array {
         $pdo = $this->db->pdo();
         $pdo->beginTransaction();
@@ -63,6 +64,8 @@ final class ApiTokenService
                 $scope,
                 $expiresAt,
                 $allowPayrollSubmissionDocs,
+                true,
+                $allowBankAccountPropose,
             );
             $pdo->commit();
             return $token;
@@ -86,6 +89,7 @@ final class ApiTokenService
         ?\DateTimeImmutable $expiresAt = null,
         bool $allowPayrollSubmissionDocs = false,
         bool $seatGate = true,
+        bool $allowBankAccountPropose = false,
     ): array {
         if (!$pdo->inTransaction() || $userId < 1) {
             throw new \LogicException('Vytvoření API tokenu vyžaduje aktivní transakci a uživatele.');
@@ -107,8 +111,8 @@ final class ApiTokenService
         $expiresSql = $expiresAt !== null ? 'FROM_UNIXTIME(?)' : 'NULL';
         $stmt = $pdo->prepare(
             'INSERT INTO api_tokens (user_id, supplier_id, name, token_hash, prefix, scope,
-                                     allow_payroll_submission_docs, expires_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ' . $expiresSql . ')'
+                                     allow_payroll_submission_docs, allow_bank_account_propose, expires_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ' . $expiresSql . ')'
         );
         $params = [
             $userId,
@@ -118,6 +122,7 @@ final class ApiTokenService
             $prefix,
             $scope,
             $allowPayrollSubmissionDocs ? 1 : 0,
+            $allowBankAccountPropose ? 1 : 0,
         ];
         if ($expiresAt !== null) {
             $params[] = $expiresAt->getTimestamp();
@@ -156,7 +161,7 @@ final class ApiTokenService
 
         $stmt = $this->db->pdo()->prepare(
             'SELECT t.id, t.user_id, t.supplier_id, t.name, t.prefix, t.scope, t.audience,
-                    t.allow_payroll_submission_docs, t.eet_external_by_default,
+                    t.allow_payroll_submission_docs, t.allow_bank_account_propose, t.eet_external_by_default,
                     t.expires_at, t.revoked_at, t.issued_auth_method,
                     u.email AS user_email, u.name AS user_name, u.role_id AS user_role_id,
                     r.name AS user_role_name, r.role_type AS user_role_type,
@@ -221,7 +226,8 @@ final class ApiTokenService
     {
         $stmt = $this->db->pdo()->prepare(
             'SELECT t.id, t.supplier_id, s.display_name AS supplier_name, s.company_name AS supplier_company,
-                    t.name, t.prefix, t.scope, t.allow_payroll_submission_docs, t.eet_external_by_default,
+                    t.name, t.prefix, t.scope, t.allow_payroll_submission_docs, t.allow_bank_account_propose,
+                    t.eet_external_by_default,
                     t.last_used_at, t.last_used_ip,
                     t.expires_at, t.revoked_at, t.created_at,
                     (SELECT COUNT(*) FROM api_token_ips ip WHERE ip.token_id = t.id) AS ip_rule_count
@@ -239,6 +245,7 @@ final class ApiTokenService
             // PDO vrací TINYINT jako řetězec, a "0" je v JS pravdivé — bez tohohle
             // přetypování by štítek schopnosti svítil i u tokenů, které ji nemají.
             $r['allow_payroll_submission_docs'] = (int) $r['allow_payroll_submission_docs'] === 1;
+            $r['allow_bank_account_propose'] = (int) ($r['allow_bank_account_propose'] ?? 0) === 1;
             $r['eet_external_by_default'] = (int) $r['eet_external_by_default'] === 1;
             if ($r['last_used_ip'] !== null) {
                 $r['last_used_ip'] = @inet_ntop($r['last_used_ip']) ?: null;
@@ -458,7 +465,7 @@ final class ApiTokenService
             // Zámek řádku, ať se snímek nerozejde se skutečně smazaným tokenem
             // při souběžném mazání ze dvou záložek.
             $stmt = $pdo->prepare(
-                'SELECT id, name, prefix, scope, allow_payroll_submission_docs, revoked_at
+                'SELECT id, name, prefix, scope, allow_payroll_submission_docs, allow_bank_account_propose, revoked_at
                  FROM api_tokens WHERE id = ? AND user_id = ? FOR UPDATE'
             );
             $stmt->execute([$tokenId, $userId]);
@@ -479,6 +486,8 @@ final class ApiTokenService
                 'scope'  => (string) $row['scope'],
                 'allow_payroll_submission_docs' =>
                     (int) $row['allow_payroll_submission_docs'] === 1,
+                'allow_bank_account_propose' =>
+                    (int) ($row['allow_bank_account_propose'] ?? 0) === 1,
                 'revoked_at' => $row['revoked_at'] !== null ? (string) $row['revoked_at'] : null,
             ];
         } catch (\Throwable $e) {

@@ -1,0 +1,18 @@
+{% extends '_layout.txt.twig' %}
+
+{% block content %}
+Hello,
+
+a bank-detail change for currency {{ currency_code }} is now „{{ event }}“.
+
+Origin: token {{ token_prefix }}{% if requester_name %}, {{ requester_name }}{% endif %}{% if client_ip %}, IP {{ client_ip }}{% endif %}.
+Submitted: {{ created_at }}. Proposal valid until: {{ expires_at }}.
+
+{{ comparison }}
+{% if reason %}
+
+Reason: {{ reason }}
+{% endif %}
+
+Invoices, payment instructions and QR codes stay unchanged until a company admin approves the proposal in the signed-in web app.
+{% endblock %}
