@@ -27,6 +27,7 @@ import EmptyState from '@/components/ui/EmptyState.vue'
 import Modal from '@/components/ui/Modal.vue'
 import DateInput from '@/components/ui/DateInput.vue'
 import BankConnectionsPanel from '@/components/bank/BankConnectionsPanel.vue'
+import BankAccountChangeProposals from '@/components/bank/BankAccountChangeProposals.vue'
 
 // embedded = vykresleno jako záložky uvnitř BankPage.vue (Finance → Bankovní účty);
 // hlavičku a lištu záložek pak dodává obálka, aktivní tab řídí přes ?tab=.
@@ -945,6 +946,7 @@ async function deleteMessage(m: BankEmailProcessedMessage) {
           {{ t('bank_accounts.multi_account_hint') }}
         </div>
       </section>
+      <BankAccountChangeProposals v-if="auth.isCompanyAdminRole" />
       <BankConnectionsPanel v-if="tab === 'accounts'" :accounts="currencies" :can-manage="canManageAccounts" />
       </div>
 

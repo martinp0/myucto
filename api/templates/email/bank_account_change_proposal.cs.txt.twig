@@ -1,0 +1,18 @@
+{% extends '_layout.txt.twig' %}
+
+{% block content %}
+Dobrý den,
+
+u měny {{ currency_code }} je návrh změny bankovního spojení ve stavu „{{ event }}“.
+
+Původ: token {{ token_prefix }}{% if requester_name %}, {{ requester_name }}{% endif %}{% if client_ip %}, IP {{ client_ip }}{% endif %}.
+Podáno: {{ created_at }}. Platnost návrhu do: {{ expires_at }}.
+
+{{ comparison }}
+{% if reason %}
+
+Důvod: {{ reason }}
+{% endif %}
+
+Než návrh schválí správce firmy ve webovém rozhraní, faktury, platební instrukce ani QR se nemění.
+{% endblock %}

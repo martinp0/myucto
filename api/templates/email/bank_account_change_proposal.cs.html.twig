@@ -1,0 +1,11 @@
+{% extends '_layout.html.twig' %}
+
+{% block content %}
+<p>Dobrý den,</p>
+<p>u měny <strong>{{ currency_code }}</strong> je návrh změny bankovního spojení ve stavu „{{ event }}“.</p>
+<p>Původ: token {{ token_prefix }}{% if requester_name %}, {{ requester_name }}{% endif %}{% if client_ip %}, IP {{ client_ip }}{% endif %}.<br>
+Podáno: {{ created_at }}. Platnost návrhu do: {{ expires_at }}.</p>
+<pre>{{ comparison }}</pre>
+{% if reason %}<p>Důvod: {{ reason }}</p>{% endif %}
+<p>Než návrh schválí správce firmy ve webovém rozhraní, faktury, platební instrukce ani QR se nemění.</p>
+{% endblock %}

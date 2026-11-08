@@ -46,6 +46,7 @@ const form = ref({
   // Least-privilege i tady: mzdovou evidenci podání token nedostane, dokud
   // ji člověk vědomě nezaškrtne.
   allow_payroll_submission_docs: false,
+  allow_bank_account_propose: false,
   totp_code: '',
 })
 
@@ -98,6 +99,7 @@ function openCreate() {
     expires_at: '',
     never_expires: false,
     allow_payroll_submission_docs: false,
+    allow_bank_account_propose: false,
     totp_code: '',
   }
   createError.value = ''
@@ -173,6 +175,9 @@ async function submitCreate() {
       expires_at: form.value.expires_at || null,
       never_expires: canNeverExpire.value && !form.value.expires_at && form.value.never_expires,
       allow_payroll_submission_docs: form.value.allow_payroll_submission_docs,
+      allow_bank_account_propose: form.value.scope === 'read_write'
+        && form.value.supplier_id !== null
+        && form.value.allow_bank_account_propose,
       totp_code: !proof && hasValidTotp ? form.value.totp_code : undefined,
       step_up_token: proof || undefined,
     }
@@ -438,6 +443,11 @@ onMounted(() => {
                   :title="t('api_tokens.payroll_docs_desc')">
                   {{ t('api_tokens.payroll_docs_badge') }}
                 </span>
+                <span v-if="tk.allow_bank_account_propose"
+                  class="px-2 py-0.5 rounded text-xs font-medium bg-neutral-100 text-neutral-700"
+                  :title="t('api_tokens.bank_propose_desc')">
+                  {{ t('api_tokens.bank_propose_badge') }}
+                </span>
                 <button v-if="canManageTokens && !tk.is_revoked && tk.scope === 'read_write'" type="button"
                   @click="toggleEetExternal(tk)" data-token-eet-external
                   class="cursor-pointer inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border whitespace-nowrap"
@@ -614,6 +624,14 @@ onMounted(() => {
           <!-- ⚠️ Jediná mzdová evidence, kterou jde tokenu odemknout. Zdravotní
                údaje, exekuce, insolvence a výplatní pásky zůstávají jen pro
                přihlášenou relaci a tímhle se odemknout nedají. -->
+          <label v-if="auth.isCompanyAdminRole && form.scope === 'read_write' && form.supplier_id !== null" class="flex items-start gap-2 text-sm">
+            <input type="checkbox" v-model="form.allow_bank_account_propose" class="mt-0.5" data-token-bank-propose />
+            <span>
+              <strong>{{ t('api_tokens.bank_propose') }}</strong>
+              <span class="text-neutral-500"> - {{ t('api_tokens.bank_propose_desc') }}</span>
+            </span>
+          </label>
+
           <label class="flex items-start gap-2 text-sm">
             <input type="checkbox" v-model="form.allow_payroll_submission_docs" class="mt-0.5" data-token-payroll-docs />
             <span>

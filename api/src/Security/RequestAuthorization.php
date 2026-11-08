@@ -88,6 +88,18 @@ final class RequestAuthorization
     }
 
     /**
+     * Smí token jen NAVRHNOUT změnu bankovního spojení? Schválit ani zapsat účet
+     * tenhle příznak neumí. Zapíná se jen při vytvoření tokenu, správcem firmy,
+     * se scope read_write a vazbou na jednu firmu.
+     */
+    public static function tokenAllowsBankAccountProposal(Request $request): bool
+    {
+        $token = $request->getAttribute(\MyInvoice\Middleware\AuthMiddleware::ATTR_API_TOKEN);
+
+        return is_array($token) && (int) ($token['allow_bank_account_propose'] ?? 0) === 1;
+    }
+
+    /**
      * Firma, na kterou je požadavek pevně vázaný: API token vydaný pro jednu firmu,
      * nebo vlastní doména firmy. NULL = požadavek vázaný není.
      *

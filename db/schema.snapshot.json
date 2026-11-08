@@ -1165,7 +1165,8 @@
         "2259_payroll_standby_floor_proof.sql",
         "2260_payroll_termination_floor_proof.sql",
         "2261_payroll_jmhz_holiday_time_off.sql",
-        "2262_drop_supplier_login_policy.sql"
+        "2262_drop_supplier_login_policy.sql",
+        "2263_bank_account_change_proposals.sql"
     ],
     "tables": {
         "abra_flexi_connections": {
@@ -2454,6 +2455,7 @@
             "engine": "InnoDB",
             "collation": "utf8mb4_unicode_ci",
             "columns": {
+                "allow_bank_account_propose": "tinyint(1) NOT NULL DEFAULT 0",
                 "allow_payroll_submission_docs": "tinyint(1) NOT NULL DEFAULT 0",
                 "audience": "enum('api','mcp') NOT NULL DEFAULT 'api'",
                 "created_at": "timestamp NOT NULL DEFAULT current_timestamp()",
@@ -2752,6 +2754,53 @@
                 "chk_backup_schedule_runs": "`runs_per_day` between 1 and 4",
                 "chk_backup_schedule_singleton": "`id` = 1"
             }
+        },
+        "bank_account_change_proposals": {
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "collation": "utf8mb4_unicode_ci",
+            "columns": {
+                "account_number": "varchar(30) NULL DEFAULT NULL",
+                "api_token_id": "bigint(20) unsigned NULL DEFAULT NULL",
+                "bank_code": "varchar(10) NULL DEFAULT NULL",
+                "bank_name": "varchar(120) NULL DEFAULT NULL",
+                "baseline_account_number": "varchar(30) NULL DEFAULT NULL",
+                "baseline_bank_code": "varchar(10) NULL DEFAULT NULL",
+                "baseline_bank_name": "varchar(120) NULL DEFAULT NULL",
+                "baseline_bic": "varchar(11) NULL DEFAULT NULL",
+                "baseline_iban": "varchar(34) NULL DEFAULT NULL",
+                "bic": "varchar(11) NULL DEFAULT NULL",
+                "client_ip": "varchar(45) NULL DEFAULT NULL",
+                "created_at": "datetime NOT NULL DEFAULT current_timestamp()",
+                "currency_id": "int(10) unsigned NOT NULL",
+                "decided_at": "datetime NULL DEFAULT NULL",
+                "decision_reason": "varchar(200) NULL DEFAULT NULL",
+                "decision_user_id": "bigint(20) unsigned NULL DEFAULT NULL",
+                "expires_at": "datetime NOT NULL",
+                "fingerprint": "char(64) NOT NULL",
+                "iban": "varchar(34) NULL DEFAULT NULL",
+                "id": "bigint(20) unsigned NOT NULL AUTO_INCREMENT",
+                "proposed_fields": "varchar(80) NOT NULL",
+                "requested_by_user_id": "bigint(20) unsigned NULL DEFAULT NULL",
+                "status": "enum('pending','approved','rejected','expired','stale','withdrawn') NOT NULL DEFAULT 'pending'",
+                "supplier_id": "int(10) unsigned NOT NULL",
+                "token_prefix": "varchar(16) NOT NULL"
+            },
+            "indexes": {
+                "PRIMARY": "UNIQUE BTREE (id)",
+                "fk_bacp_decider": "BTREE (decision_user_id)",
+                "fk_bacp_requester": "BTREE (requested_by_user_id)",
+                "idx_bacp_currency_status": "BTREE (currency_id, status)",
+                "idx_bacp_supplier_status": "BTREE (supplier_id, status, created_at)",
+                "idx_bacp_token_created": "BTREE (api_token_id, created_at)"
+            },
+            "foreign_keys": {
+                "fk_bacp_decider": "(decision_user_id) -> users (id) ON UPDATE RESTRICT ON DELETE SET NULL",
+                "fk_bacp_requester": "(requested_by_user_id) -> users (id) ON UPDATE RESTRICT ON DELETE SET NULL",
+                "fk_bacp_supplier": "(supplier_id) -> supplier (id) ON UPDATE RESTRICT ON DELETE CASCADE",
+                "fk_bacp_token": "(api_token_id) -> api_tokens (id) ON UPDATE RESTRICT ON DELETE SET NULL"
+            },
+            "checks": []
         },
         "bank_api_evidence_months": {
             "type": "BASE TABLE",

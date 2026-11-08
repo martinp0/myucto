@@ -118,6 +118,7 @@ final class MfaProtectedOperationService
         string $scope,
         ?\DateTimeImmutable $expiresAt,
         bool $allowPayrollSubmissionDocs = false,
+        bool $allowBankAccountPropose = false,
     ): array {
         $pdo = $this->db->pdo();
         $pdo->beginTransaction();
@@ -141,6 +142,8 @@ final class MfaProtectedOperationService
                 $scope,
                 $expiresAt,
                 $allowPayrollSubmissionDocs,
+                true,
+                $allowBankAccountPropose,
             );
             $pdo->commit();
             return $token;

@@ -289,8 +289,42 @@ bez kterých implementaci začít nechceme.
 12. Má ruční úprava účtu ve stávajícím formuláři dostat stejný step-up, nebo
     zůstane, jak je dnes, a step-up platí jen pro vyřízení návrhu z tokenu?
 
-## Mimo tento podklad
+## Mimo původní podklad
 
-Žádná migrace, změna OpenAPI, úprava middleware, obrazovka, test, šablona
-e-mailu ani manuálová kapitola. Až po dohodě na otázkách výše, a jen pokud
-o ni budete stát.
+Původní text záměrně neobsahoval migraci, OpenAPI, middleware, obrazovku,
+test ani šablonu. Implementace ve forku, popsaná níže, ty části doplnila
+jako místní větev. Upstream ji neschválil.
+
+## Rozhodnutí implementace ve forku
+
+Upstream tenhle návrh neschválil. Následující volby platí jen pro implementaci
+ve forku `martinp0/myucto` a nejsou smlouva vůči upstreamu.
+
+1. Token návrh podávat smí. Bez toho by hromadná příprava dat nevznikla.
+2. Schopnost je příznak `allow_bank_account_propose`, výchozí `0`. Zapne ho
+   jen správce firmy, jen u tokenu `read_write` vázaného na jednu firmu.
+   Příznak účet nezapíše.
+3. Podání je `POST /api/settings/currencies/{id}/bank-change-proposals`.
+   Stávající `PUT` měny zůstává pro token zavřený. Schválení a zamítnutí
+   tokenem vrací `403 token_write_forbidden`.
+4. Token, který návrh podal, smí číst a stáhnout jen své návrhy. Cizí návrhy
+   nevidí. Správce firmy ve session vidí návrhy firmy.
+5. Schválení i zamítnutí vyžaduje `isCompanyAdmin()` a čerstvý step-up
+   `bank_account_proposal.approve:{id}` nebo `reject:{id}`. Záložní kód
+   nestačí. Heslo navíc se neopisuje: dnešní citlivé operace potvrzuje
+   passkey nebo TOTP, a při vynuceném Entra ID ověření u poskytovatele.
+6. E-mail jde členům `user_suppliers` dané firmy, jejichž role je `admin`,
+   `admin_plus` nebo `superadmin`. Superadmin bez členství ve firmě zprávu
+   nedostane.
+7. Validace je dnešní `CurrencyBankAccountFields` plus kontrola cizího účtu
+   (`accountClaimedByOtherSupplier`, `accountBlockedByForeignStatements`),
+   znovu při schválení. Přísnější mod-97 IBAN se nepřidává.
+8. Návrh platí 7 dní. Token smí 5 návrhů za hodinu, firma 20 za den. Stejný
+   čekající návrh od stejného tokenu druhý e-mail nepošle.
+9. Audit nese názvy polí. `account_number` a `iban` jdou přes
+   `ActivityLogger` a skončí jako `[REDACTED]`. `bank_code`, `bank_name` a
+   `bic` se do auditu neukládají, protože je redakce neschovává.
+10. Token smí vlastní čekající návrh stáhnout. Účet se tím nemění a správci
+    dostanou jedno vyrozumění.
+11. Ruční úprava účtu ve stávajícím formuláři step-up navíc nevyžaduje.
+    Step-up platí pro vyřízení návrhu z tokenu.

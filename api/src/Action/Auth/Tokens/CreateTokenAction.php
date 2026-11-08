@@ -99,6 +99,31 @@ final class CreateTokenAction
         // ji člověk výslovně nezaškrtne. Zbytek mzdové evidence nejde odemknout
         // vůbec — viz RequestAuthorization::tokenAllowsPayrollSubmissionDocs().
         $allowPayrollSubmissionDocs = !empty($body['allow_payroll_submission_docs']);
+        $allowBankAccountPropose = !empty($body['allow_bank_account_propose']);
+        if ($allowBankAccountPropose && $scope !== 'read_write') {
+            return Json::error(
+                $response,
+                'proposal_scope_required',
+                'Návrh bankovního spojení jde povolit jen tokenu se scope read_write.',
+                422,
+            );
+        }
+        if ($allowBankAccountPropose && $supplierId === null) {
+            return Json::error(
+                $response,
+                'proposal_supplier_required',
+                'Návrh bankovního spojení jde povolit jen tokenu vázanému na jednu firmu.',
+                422,
+            );
+        }
+        if ($allowBankAccountPropose && !RequestAuthorization::isCompanyAdmin($request)) {
+            return Json::error(
+                $response,
+                'forbidden',
+                'Schopnost navrhovat bankovní spojení zapíná jen správce firmy.',
+                403,
+            );
+        }
         $expiresRaw = trim((string) ($body['expires_at'] ?? ''));
         $neverExpires = ($body['never_expires'] ?? false) === true;
         $totpCode = trim((string) ($body['totp_code'] ?? ''));
@@ -196,6 +221,7 @@ final class CreateTokenAction
                     $scope,
                     $expiresAt,
                     $allowPayrollSubmissionDocs,
+                    $allowBankAccountPropose,
                 );
             } catch (OneTimeTokenException|StepUpOperationException) {
                 return Json::error(
@@ -282,6 +308,7 @@ final class CreateTokenAction
                 $scope,
                 $expiresAt,
                 $allowPayrollSubmissionDocs,
+                $allowBankAccountPropose,
             );
         } catch (LicenseSeatLimitExceeded) {
             return self::seatLimitError($response);
@@ -306,6 +333,7 @@ final class CreateTokenAction
                 'expires_at' => $expiresAt?->format('Y-m-d H:i:s'),
                 'never_expires' => $expiresAt === null,
                 'allow_payroll_submission_docs' => $allowPayrollSubmissionDocs,
+                'allow_bank_account_propose' => $allowBankAccountPropose,
             ],
             $ip,
             $userAgent,

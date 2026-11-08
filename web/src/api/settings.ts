@@ -554,6 +554,27 @@ export interface CurrencyAccount {
   invoices_count?: number
 }
 
+export interface BankAccountChangeProposal {
+  id: number
+  supplier_id: number
+  currency_id: number
+  currency_code: string | null
+  status: 'pending' | 'approved' | 'rejected' | 'expired' | 'stale' | 'withdrawn'
+  created_at: string
+  expires_at: string
+  decided_at: string | null
+  decision_reason: string | null
+  proposed: Record<string, string | null>
+  baseline: Record<string, string | null>
+  origin: {
+    token_id: number | null
+    token_prefix: string
+    user_id: number | null
+    user_name: string | null
+    ip: string | null
+  }
+}
+
 export interface BankEmailImapSettings {
   id: number | null
   supplier_id: number
@@ -1209,6 +1230,12 @@ export const settingsApi = {
   updateCurrency: (id: number, payload: Partial<CurrencyAccount>) =>
     api.put<CurrencyAccount>(`/settings/currencies/${id}`, payload).then(r => r.data),
   deleteCurrency: (id: number) => api.delete(`/settings/currencies/${id}`).then(r => r.data),
+  listBankChangeProposals: () =>
+    api.get<{ items: BankAccountChangeProposal[] }>('/settings/currencies/bank-change-proposals').then(r => r.data.items),
+  approveBankChangeProposal: (id: number, stepUpToken: string) =>
+    api.post<BankAccountChangeProposal>(`/settings/currencies/bank-change-proposals/${id}/approve`, { step_up_token: stepUpToken }).then(r => r.data),
+  rejectBankChangeProposal: (id: number, stepUpToken: string, reason: string) =>
+    api.post<BankAccountChangeProposal>(`/settings/currencies/bank-change-proposals/${id}/reject`, { step_up_token: stepUpToken, reason }).then(r => r.data),
 
   getBankEmailOverview: () =>
     api.get<BankEmailOverview>('/settings/bank-email-notices').then(r => r.data),

@@ -51,6 +51,12 @@ Bankovní avízo je e-mail od banky s údaji o platbě. MyÚčto ho umí pravide
 
 Sekce **Měny + bankovní účty** je čistý seznam účtů firmy. Účet zde nastavujete stejně pro PDF faktury, QR platby a GPC výpisy.
 
+Pod seznamem vidí správce firmy **Návrhy změny bankovního spojení**. Jsou to
+podklady od API tokenu. Než je schválíte, platební údaje na dokladech se
+nemění. Schválit nebo zamítnout jde jen po novém ověření přístupovým klíčem
+nebo TOTP. U každého návrhu je původní i navrhovaná hodnota a původ
+(prefix tokenu, uživatel, IP a čas). Zamítnutí účet nechá, jak je.
+
 1. Otevřete `Peníze → Bankovní účty`, záložku **Měny a účty**.
 2. Klikněte na **Nový bankovní účet**. Pro více účtů ve stejné měně použijte totéž tlačítko a vyberte stejný kód měny.
 3. Vyplňte **Měna**, **Název účtu**, **Číslo účtu** a **Kód banky**, případně **Název banky**, **IBAN** a **BIC**.

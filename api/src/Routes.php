@@ -4002,6 +4002,12 @@ final class Routes
         $app->post   ('/api/settings/currencies',                     [SettingsAction::class, 'createCurrency']);
         $app->put    ('/api/settings/currencies/{id:[0-9]+}',         [SettingsAction::class, 'updateCurrency']);
         $app->delete ('/api/settings/currencies/{id:[0-9]+}',         [SettingsAction::class, 'deleteCurrency']);
+        $app->post   ('/api/settings/currencies/{id:[0-9]+}/bank-change-proposals', [\MyInvoice\Action\Settings\BankAccountChangeProposalAction::class, 'create']);
+        $app->get    ('/api/settings/currencies/bank-change-proposals', [\MyInvoice\Action\Settings\BankAccountChangeProposalAction::class, 'list']);
+        $app->get    ('/api/settings/currencies/bank-change-proposals/{id:[0-9]+}', [\MyInvoice\Action\Settings\BankAccountChangeProposalAction::class, 'show']);
+        $app->post   ('/api/settings/currencies/bank-change-proposals/{id:[0-9]+}/approve', [\MyInvoice\Action\Settings\BankAccountChangeProposalAction::class, 'approve']);
+        $app->post   ('/api/settings/currencies/bank-change-proposals/{id:[0-9]+}/reject', [\MyInvoice\Action\Settings\BankAccountChangeProposalAction::class, 'reject']);
+        $app->post   ('/api/settings/currencies/bank-change-proposals/{id:[0-9]+}/withdraw', [\MyInvoice\Action\Settings\BankAccountChangeProposalAction::class, 'withdraw']);
         // Společný návrat z OAuth přihlášení k externím službám (OAuthClientFlow).
         $app->get    ('/api/oauth/callback', \MyInvoice\Action\OAuth\OAuthCallbackAction::class);
         $app->get    ('/api/settings/bank-connections', [BankConnectionAction::class, 'list']);
